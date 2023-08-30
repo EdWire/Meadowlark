@@ -1,0 +1,47 @@
+trigger:
+- main
+
+resources:
+- repo: self
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  buildConfiguration: 'Release'
+
+stages:
+- stage: Build
+  displayName: Build image
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+      - task: Docker@2
+        displayName: Login to ACR
+        inputs:
+          command: login
+          containerRegistry: 'ewcontainerscus'
+      - task: Docker@2
+        displayName: Build an image
+        inputs:
+          containerRegistry: 'ewcontainerscus'
+          repository: 'edfi/meadowlark'
+          command: 'buildAndPush'
+          Dockerfile: '$(Build.SourcesDirectory)/Meadowlark-js/Dockerfile'
+          buildContext: '$(Build.SourcesDirectory)/Meadowlark-js'
+          tags: |
+            meadowlark-v5.3-core-mongo.$(Build.BuildNumber)
+            meadowlark-v5.3-core-mongo.latest
+      - task: Docker@2
+        displayName: Logout of ACR
+        inputs:
+          command: logout
+          containerRegistry: ewcontainerscus
+      - task: Docker@2
+        displayName: Logout of ACR
+        inputs:
+          command: logout
+          containerRegistry: ewcontainerscus
