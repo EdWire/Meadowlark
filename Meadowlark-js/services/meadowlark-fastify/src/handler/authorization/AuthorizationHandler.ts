@@ -13,7 +13,9 @@ import {
   updateClient,
   verifyToken,
 } from '@edfi/meadowlark-authz-server';
+import type { AuthorizationRequest } from '@edfi/meadowlark-authz-server';
 import { FastifyReply, FastifyRequest } from 'fastify';
+import { mapKeys } from 'lodash';
 import { respondWith, fromRequest } from './AuthorizationConverter';
 
 export async function createAuthorizationClientHandler(request: FastifyRequest, reply: FastifyReply): Promise<void> {
@@ -25,7 +27,17 @@ export async function updateAuthorizationClientHandler(request: FastifyRequest, 
 }
 
 export async function requestTokenAuthorizationHandler(request: FastifyRequest, reply: FastifyReply): Promise<void> {
-  respondWith(await requestToken(fromRequest(request)), reply);
+  const authorizationRequest: AuthorizationRequest = fromRequest(request);
+
+  const authorizationRequestJson: JSON = JSON.parse(authorizationRequest.body as string);
+  // @ts-ignore
+  const authorizationRequestJsonFormatted: JSON = mapKeys(authorizationRequestJson, (v: string, k: string) =>
+    k.toLowerCase(),
+  );
+  const jsonFormattedString: string = JSON.stringify(authorizationRequestJsonFormatted);
+  authorizationRequest.body = jsonFormattedString;
+  // respondWith(await requestToken(fromRequest(request)), reply);
+  respondWith(await requestToken(authorizationRequest), reply);
 }
 
 export async function verifyTokenAuthorizationHandler(request: FastifyRequest, reply: FastifyReply): Promise<void> {

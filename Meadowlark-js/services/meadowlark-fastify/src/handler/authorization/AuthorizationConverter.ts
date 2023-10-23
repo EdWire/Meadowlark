@@ -17,7 +17,7 @@ export function fromRequest(fastifyRequest: FastifyRequest): AuthorizationReques
     ...newAuthorizationRequest(),
     path: extractPath(fastifyRequest, Config.get('MEADOWLARK_STAGE')),
     traceId: fastifyRequest.id ?? '',
-    body: ((fastifyRequest.body as string).toLowerCase()), // Quick fix for invalid mix case json conversion (for ajv-validator models)
+    body: fastifyRequest.body as string,
     headers: getHeaders(fastifyRequest),
     queryParameters: (fastifyRequest.query as CompatibleParameters) ?? {},
     stage: Config.get('MEADOWLARK_STAGE'),
