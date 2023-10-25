@@ -2,7 +2,7 @@
 // Licensed to the Ed-Fi Alliance under one or more agreements.
 // The Ed-Fi Alliance licenses this file to you under the Apache License, Version 2.0.
 // See the LICENSE and NOTICES files in the project root for more information.
-
+import querystring from 'node:querystring';
 import {
   createClient,
   createSigningKey,
@@ -29,14 +29,32 @@ export async function updateAuthorizationClientHandler(request: FastifyRequest, 
 export async function requestTokenAuthorizationHandler(request: FastifyRequest, reply: FastifyReply): Promise<void> {
   const authorizationRequest: AuthorizationRequest = fromRequest(request);
 
-  const authorizationRequestJson: JSON = JSON.parse(authorizationRequest.body as string);
-  // @ts-ignore
-  const authorizationRequestJsonFormatted: JSON = mapKeys(authorizationRequestJson, (v: string, k: string) =>
-    k.toLowerCase(),
-  );
-  const jsonFormattedString: string = JSON.stringify(authorizationRequestJsonFormatted);
-  authorizationRequest.body = jsonFormattedString;
-  // respondWith(await requestToken(fromRequest(request)), reply);
+  if (authorizationRequest.headers['content-type']?.startsWith('application/x-www-form-urlencoded')) {
+    let authorizationRequestWwwForm: any;
+    try {
+      authorizationRequestWwwForm = querystring.parse(authorizationRequest.body as string);
+      // @ts-ignore
+      authorizationRequestWwwForm = mapKeys(authorizationRequestWwwForm, (v: string, k: string) => k.toLowerCase());
+      const queryString = querystring.stringify(authorizationRequestWwwForm);
+      authorizationRequest.body = queryString;
+    } catch (error) {
+      /* empty */
+    }
+  } else {
+    let authorizationRequestJson: JSON;
+    try {
+      authorizationRequestJson = JSON.parse(authorizationRequest.body as string);
+      // @ts-ignore
+      const authorizationRequestJsonFormatted: JSON = mapKeys(authorizationRequestJson, (v: string, k: string) =>
+        k.toLowerCase(),
+      );
+      const jsonFormattedString: string = JSON.stringify(authorizationRequestJsonFormatted);
+      authorizationRequest.body = jsonFormattedString;
+    } catch (error) {
+      /* empty */
+    }
+  }
+
   respondWith(await requestToken(authorizationRequest), reply);
 }
 
