@@ -30,5 +30,8 @@
     "dotenv": "^16.3.1",
     "rimraf": "^5.0.5",
     "testcontainers": "^10.2.1"
+  },
+  "overrides": {
+    "undici": "^5.28.2"
   }
 }
